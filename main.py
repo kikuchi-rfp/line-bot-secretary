@@ -276,20 +276,15 @@ if __name__ == "__main__":
     print("=" * 50)
     print("🤖 LINE Bot 秘書アプリケーション 起動中...")
 
-    # ポート設定（Cloud Run は必ず PORT 環境変数を設定する）
-    port_str = os.getenv('PORT', '8080')
-    try:
-        port = int(port_str)
-    except ValueError:
-        port = 8080
-
+    # ポート設定 - Cloud Run は PORT 8080 を使用
+    port = 8080
     print(f"📍 ポート: {port}")
     print(f"🌍 アドレス: 0.0.0.0:{port}")
     print("=" * 50)
 
     try:
         # Cloud Run ではデバッグモードを無効にする
-        debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'
+        debug_mode = False
         print(f"🔧 設定 - Debug: {debug_mode}, Host: 0.0.0.0, Port: {port}")
         app.run(host='0.0.0.0', port=port, debug=debug_mode, threaded=True, use_reloader=False)
     except Exception as e:
