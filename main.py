@@ -239,12 +239,15 @@ def health():
 
 # ===== ローカル実行用 =====
 if __name__ == "__main__":
-    print("Flask starting...")
+    print("=" * 50)
+    print("🤖 LINE Bot 秘書アプリケーション 起動中...")
     port = int(os.getenv('PORT', 5000))
-    print(f"Port: {port}")
+    print(f"📍 ポート: {port}")
+    print(f"🌍 アドレス: 0.0.0.0:{port}")
+    print("=" * 50)
     try:
         app.run(host='0.0.0.0', port=port, debug=True)
     except Exception as e:
-        print(f"ERROR: {e}")
+        print(f"❌ エラー発生: {e}")
         import traceback
         traceback.print_exc()
