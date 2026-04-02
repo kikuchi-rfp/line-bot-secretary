@@ -15,10 +15,9 @@ from datetime import datetime
 from typing import Optional
 from flask import Flask, request, abort
 
-from linebot import WebhookHandler
-from linebot.v3.client import LineBotApi
-from linebot.v3.models import MessageEvent, TextMessage, TextSendMessage
-from linebot.v3.exceptions import InvalidSignatureError
+from linebot import Bot, WebhookHandler
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.exceptions import InvalidSignatureError
 
 from google.oauth2.service_account import Credentials
 from google.auth.transport.requests import Request
