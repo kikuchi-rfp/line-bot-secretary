@@ -17,8 +17,8 @@ from flask import Flask, request, abort
 
 from linebot import WebhookHandler
 from linebot.v3.client import LineBotApi
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
-from linebot.exceptions import InvalidSignatureError
+from linebot.v3.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.v3.exceptions import InvalidSignatureError
 
 from google.oauth2.service_account import Credentials
 from google.auth.transport.requests import Request
