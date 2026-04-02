@@ -239,6 +239,12 @@ def health():
 
 # ===== ローカル実行用 =====
 if __name__ == "__main__":
-    # ローカルでの実行
+    print("Flask starting...")
     port = int(os.getenv('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    print(f"Port: {port}")
+    try:
+        app.run(host='0.0.0.0', port=port, debug=True)
+    except Exception as e:
+        print(f"ERROR: {e}")
+        import traceback
+        traceback.print_exc()
