@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Optional
 from flask import Flask, request, abort
 
-from linebot import WebhookHandler
+from linebot import Bot, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from linebot.exceptions import InvalidSignatureError
 
@@ -34,7 +34,7 @@ CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 
 line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
+line_bot_api = Bot(CHANNEL_ACCESS_TOKEN)
 
 # Google APIs認証
 def get_google_credentials():
