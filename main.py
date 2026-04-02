@@ -16,6 +16,7 @@ from typing import Optional
 from flask import Flask, request, abort
 
 from linebot import Bot, WebhookHandler
+from linebot.v3.client import LineBotApi
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from linebot.exceptions import InvalidSignatureError
 
@@ -33,7 +34,7 @@ CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 
-line_bot_api = Bot(CHANNEL_ACCESS_TOKEN)
+line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 
 # Google APIs認証
