@@ -28,33 +28,48 @@ def hello():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    print("DEBUG: Webhook received")  # ← デバッグログ
+    
     body = request.get_data(as_text=True)
     signature = request.headers.get("X-Line-Signature")
     
+    print(f"DEBUG: Body: {body}")  # ← デバッグログ
+    print(f"DEBUG: Signature: {signature}")  # ← デバッグログ
+    
     if not verify_line_signature(body, signature):
+        print("DEBUG: Signature verification failed")  # ← デバッグログ
         return "Unauthorized", 401
+    
+    print("DEBUG: Signature verified")  # ← デバッグログ
     
     try:
         events = json.loads(body).get("events", [])
+        print(f"DEBUG: Events: {events}")  # ← デバッグログ
     except Exception as e:
+        print(f"DEBUG: JSON parse error: {e}")  # ← デバッグログ
         return "Bad Request", 400
     
     for event in events:
         event_type = event.get("type")
+        print(f"DEBUG: Event type: {event_type}")  # ← デバッグログ
         
         if event_type == "message":
             reply_token = event.get("replyToken")
             message = event.get("message", {})
             text = message.get("text", "メッセージが空です")
+            print(f"DEBUG: Message received: {text}")  # ← デバッグログ
             send_reply_message(reply_token, text)
         
         elif event_type == "follow":
             reply_token = event.get("replyToken")
+            print("DEBUG: Follow event")  # ← デバッグログ
             send_reply_message(reply_token, "フォローありがとうございます！秘書AIです。何かお手伝いできることはありますか？")
     
     return "OK", 200
 
 def send_reply_message(reply_token, text):
+    print(f"DEBUG: Sending message: {text}")  # ← デバッグログ
+    
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}"
@@ -71,9 +86,12 @@ def send_reply_message(reply_token, text):
     }
     
     try:
+        print(f"DEBUG: Calling LINE API to {LINE_API_URL}")  # ← デバッグログ
         response = requests.post(LINE_API_URL, json=payload, headers=headers)
+        print(f"DEBUG: Response status: {response.status_code}")  # ← デバッグログ
+        print(f"DEBUG: Response text: {response.text}")  # ← デバッグログ
         if response.status_code != 200:
-            print(f"LINE API error: {response.status_code}")
+            print(f"LINE API error: {response.status_code} - {response.text}")
     except Exception as e:
         print(f"Request error: {e}")
 
