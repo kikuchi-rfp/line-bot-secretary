@@ -11,13 +11,12 @@ LINE Bot 秘書 - メイン実装
 
 import os
 import json
+import hmac
+import hashlib
 from datetime import datetime
 from typing import Optional
 from flask import Flask, request, abort
-
-from linebot import Bot, WebhookHandler
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
-from linebot.exceptions import InvalidSignatureError
+import requests
 
 from google.oauth2.service_account import Credentials
 from google.auth.transport.requests import Request
@@ -32,13 +31,6 @@ app = Flask(__name__)
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "{}")
-
-try:
-    line_bot_api = Bot(CHANNEL_ACCESS_TOKEN)
-    handler = WebhookHandler(CHANNEL_SECRET)
-except:
-    line_bot_api = None
-    handler = None
 
 # Google APIs認証
 def get_google_credentials():
@@ -202,20 +194,38 @@ def process_message(text: str) -> str:
     else:
         return ask_consultation(text)
 
-# ===== Webhook ハンドラー =====
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    """テキストメッセージを受け取ったときの処理"""
-    user_message = event.message.text
-
-    # メッセージを処理
-    response_text = process_message(user_message)
-
-    # LINE に返信
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=response_text)
+# ===== LINE 署名検証 =====
+def verify_line_signature(body: str, signature: str) -> bool:
+    """LINE Webhook 署名を検証"""
+    hash_object = hmac.new(
+        CHANNEL_SECRET.encode('utf-8'),
+        body.encode('utf-8'),
+        hashlib.sha256
     )
+    expected_signature = hash_object.digest()
+    expected_signature_b64 = __import__('base64').b64encode(expected_signature).decode('utf-8')
+    return hmac.compare_digest(expected_signature_b64, signature)
+
+def reply_to_line(reply_token: str, text: str):
+    """LINE に返信を送信"""
+    url = 'https://api.line.biz/v2/bot/message/reply'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {CHANNEL_ACCESS_TOKEN}'
+    }
+    body = {
+        'replyToken': reply_token,
+        'messages': [
+            {
+                'type': 'text',
+                'text': text
+            }
+        ]
+    }
+    try:
+        requests.post(url, json=body, headers=headers)
+    except Exception as e:
+        print(f"LINE 返信エラー: {e}")
 
 # ===== Flask エンドポイント =====
 @app.route("/webhook", methods=['POST'])
@@ -225,10 +235,27 @@ def webhook():
     signature = request.headers.get('X-Line-Signature', '')
     body = request.get_data(as_text=True)
 
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
+    # 署名検証
+    if not verify_line_signature(body, signature):
+        print("❌ 署名検証失敗")
         abort(403)
+
+    try:
+        body_data = json.loads(body)
+        for event in body_data.get('events', []):
+            if event.get('type') == 'message' and event.get('message', {}).get('type') == 'text':
+                user_message = event['message']['text']
+                reply_token = event['replyToken']
+
+                # メッセージを処理
+                response_text = process_message(user_message)
+
+                # LINE に返信
+                reply_to_line(reply_token, response_text)
+    except Exception as e:
+        print(f"Webhook エラー: {e}")
+        import traceback
+        traceback.print_exc()
 
     return 'OK', 200
 
