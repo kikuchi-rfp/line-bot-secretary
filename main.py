@@ -55,7 +55,7 @@ def get_claude_response(user_message):
 
     try:
         message = client.messages.create(
-            model="claude-3-5-sonnet",
+            model="claude-opus-4-1",
             max_tokens=1024,
             system="あなたは親切な秘書です。ユーザーの質問に対して、簡潔で分かりやすく、実用的な回答をしてください。",
             messages=[
