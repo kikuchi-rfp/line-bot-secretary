@@ -5,6 +5,16 @@ import base64
 import json
 import requests
 import os
+import logging
+import sys
+
+# ログ設定
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stderr
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -30,52 +40,52 @@ def hello():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    print("DEBUG: Webhook received")
+    logger.debug("Webhook received")
     body = request.get_data(as_text=True)
     signature = request.headers.get("X-Line-Signature")
-    
-    print(f"DEBUG: Body: {body}")
-    print(f"DEBUG: Signature: {signature}")
-    
+
+    logger.debug(f"Body: {body}")
+    logger.debug(f"Signature: {signature}")
+
     if not verify_line_signature(body, signature):
-        print("DEBUG: Signature verification failed")
+        logger.debug("Signature verification failed")
         return "Unauthorized", 401
-    
-    print("DEBUG: Signature verified")
-    
+
+    logger.debug("Signature verified")
+
     try:
         events = json.loads(body).get("events", [])
-        print(f"DEBUG: Events: {events}")
+        logger.debug(f"Events: {events}")
     except Exception as e:
-        print(f"DEBUG: JSON parse error: {e}")
+        logger.debug(f"JSON parse error: {e}")
         return "Bad Request", 400
-    
+
     for event in events:
         event_type = event.get("type")
-        print(f"DEBUG: Event type: {event_type}")
-        
+        logger.debug(f"Event type: {event_type}")
+
         if event_type == "message":
             reply_token = event.get("replyToken")
             message = event.get("message", {})
             text = message.get("text", "メッセージが空です")
-            print(f"DEBUG: Message received: {text}")
+            logger.debug(f"Message received: {text}")
             send_reply_message(reply_token, text)
-        
+
         elif event_type == "follow":
             reply_token = event.get("replyToken")
-            print("DEBUG: Follow event")
+            logger.debug("Follow event")
             send_reply_message(reply_token, "フォローありがとうございます！秘書AIです。何かお手伝いできることはありますか？")
-    
+
     return "OK", 200
 
 def send_reply_message(reply_token, text):
-    print(f"DEBUG: Sending message: {text}")
-    
+    logger.debug(f"Sending message: {text}")
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}"
     }
-    
+
     payload = {
         "replyToken": reply_token,
         "messages": [
@@ -85,15 +95,15 @@ def send_reply_message(reply_token, text):
             }
         ]
     }
-    
+
     try:
-        print(f"DEBUG: LINE API URL: {LINE_API_URL}")
-        print(f"DEBUG: Token exists: {bool(CHANNEL_ACCESS_TOKEN)}")
+        logger.debug(f"LINE API URL: {LINE_API_URL}")
+        logger.debug(f"Token exists: {bool(CHANNEL_ACCESS_TOKEN)}")
         response = requests.post(LINE_API_URL, json=payload, headers=headers, timeout=10)
-        print(f"DEBUG: Response status: {response.status_code}")
-        print(f"DEBUG: Response: {response.text}")
+        logger.debug(f"Response status: {response.status_code}")
+        logger.debug(f"Response: {response.text}")
     except Exception as e:
-        print(f"DEBUG: Error: {type(e).__name__}: {str(e)}")
+        logger.debug(f"Error: {type(e).__name__}: {str(e)}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=False)
