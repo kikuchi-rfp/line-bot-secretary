@@ -241,12 +241,14 @@ def health():
 if __name__ == "__main__":
     print("=" * 50)
     print("🤖 LINE Bot 秘書アプリケーション 起動中...")
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', 8080))
     print(f"📍 ポート: {port}")
     print(f"🌍 アドレス: 0.0.0.0:{port}")
     print("=" * 50)
     try:
-        app.run(host='0.0.0.0', port=port, debug=True)
+        # Cloud Run ではデバッグモードを無効にする
+        debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'
+        app.run(host='0.0.0.0', port=port, debug=debug_mode, threaded=True)
     except Exception as e:
         print(f"❌ エラー発生: {e}")
         import traceback
