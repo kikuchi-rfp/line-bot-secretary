@@ -29,12 +29,16 @@ import anthropic
 app = Flask(__name__)
 
 # ===== 設定 =====
-CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
-CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
-GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
+CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "")
+GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "{}")
 
-line_bot_api = Bot(CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
+try:
+    line_bot_api = Bot(CHANNEL_ACCESS_TOKEN)
+    handler = WebhookHandler(CHANNEL_SECRET)
+except:
+    line_bot_api = None
+    handler = None
 
 # Google APIs認証
 def get_google_credentials():
