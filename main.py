@@ -5,28 +5,15 @@ import base64
 import json
 import requests
 import os
-import socket
 
 app = Flask(__name__)
 
-# ネットワーク疎通テスト
-try:
-    socket.gethostbyname('api.line.biz')
-    print("DEBUG: DNS resolution OK for api.line.biz")
-except Exception as e:
-    print(f"DEBUG: DNS resolution failed: {e}")
-
+# 環境変数の定義（最初）
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_API_URL = "https://api.line.biz/v2/bot/message/reply"
 
-# 以下、既存のコード...
-
-
-CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
-CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
-LINE_API_URL = "https://api.line.biz/v2/bot/message/reply"
-
+# 関数の定義（その後）
 def verify_line_signature(body, signature):
     hash_object = hmac.new(
         CHANNEL_SECRET.encode('utf-8'),
@@ -43,47 +30,46 @@ def hello():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    print("DEBUG: Webhook received")  # ← デバッグログ
-    
+    print("DEBUG: Webhook received")
     body = request.get_data(as_text=True)
     signature = request.headers.get("X-Line-Signature")
     
-    print(f"DEBUG: Body: {body}")  # ← デバッグログ
-    print(f"DEBUG: Signature: {signature}")  # ← デバッグログ
+    print(f"DEBUG: Body: {body}")
+    print(f"DEBUG: Signature: {signature}")
     
     if not verify_line_signature(body, signature):
-        print("DEBUG: Signature verification failed")  # ← デバッグログ
+        print("DEBUG: Signature verification failed")
         return "Unauthorized", 401
     
-    print("DEBUG: Signature verified")  # ← デバッグログ
+    print("DEBUG: Signature verified")
     
     try:
         events = json.loads(body).get("events", [])
-        print(f"DEBUG: Events: {events}")  # ← デバッグログ
+        print(f"DEBUG: Events: {events}")
     except Exception as e:
-        print(f"DEBUG: JSON parse error: {e}")  # ← デバッグログ
+        print(f"DEBUG: JSON parse error: {e}")
         return "Bad Request", 400
     
     for event in events:
         event_type = event.get("type")
-        print(f"DEBUG: Event type: {event_type}")  # ← デバッグログ
+        print(f"DEBUG: Event type: {event_type}")
         
         if event_type == "message":
             reply_token = event.get("replyToken")
             message = event.get("message", {})
             text = message.get("text", "メッセージが空です")
-            print(f"DEBUG: Message received: {text}")  # ← デバッグログ
+            print(f"DEBUG: Message received: {text}")
             send_reply_message(reply_token, text)
         
         elif event_type == "follow":
             reply_token = event.get("replyToken")
-            print("DEBUG: Follow event")  # ← デバッグログ
+            print("DEBUG: Follow event")
             send_reply_message(reply_token, "フォローありがとうございます！秘書AIです。何かお手伝いできることはありますか？")
     
     return "OK", 200
 
 def send_reply_message(reply_token, text):
-    print(f"DEBUG: Sending message: {text}")  # ← デバッグログ
+    print(f"DEBUG: Sending message: {text}")
     
     headers = {
         "Content-Type": "application/json",
@@ -101,14 +87,13 @@ def send_reply_message(reply_token, text):
     }
     
     try:
-        print(f"DEBUG: Calling LINE API to {LINE_API_URL}")  # ← デバッグログ
-        response = requests.post(LINE_API_URL, json=payload, headers=headers)
-        print(f"DEBUG: Response status: {response.status_code}")  # ← デバッグログ
-        print(f"DEBUG: Response text: {response.text}")  # ← デバッグログ
-        if response.status_code != 200:
-            print(f"LINE API error: {response.status_code} - {response.text}")
+        print(f"DEBUG: LINE API URL: {LINE_API_URL}")
+        print(f"DEBUG: Token exists: {bool(CHANNEL_ACCESS_TOKEN)}")
+        response = requests.post(LINE_API_URL, json=payload, headers=headers, timeout=10)
+        print(f"DEBUG: Response status: {response.status_code}")
+        print(f"DEBUG: Response: {response.text}")
     except Exception as e:
-        print(f"Request error: {e}")
+        print(f"DEBUG: Error: {type(e).__name__}: {str(e)}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=False)
