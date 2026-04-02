@@ -1,18 +1,10 @@
-"""
-LINE Bot 秘書 - シンプル版（デバッグ用）
-"""
-
 from flask import Flask
 
 app = Flask(__name__)
 
-@app.route("/", methods=['GET'])
-def index():
-    return {"message": "OK"}, 200
-
-@app.route("/health", methods=['GET'])
-def health():
-    return {"status": "ok"}, 200
+@app.route("/")
+def hello():
+    return "Hello World!"
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    app.run(host="0.0.0.0", port=8080)
