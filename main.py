@@ -5,8 +5,23 @@ import base64
 import json
 import requests
 import os
+import socket
 
 app = Flask(__name__)
+
+# ネットワーク疎通テスト
+try:
+    socket.gethostbyname('api.line.biz')
+    print("DEBUG: DNS resolution OK for api.line.biz")
+except Exception as e:
+    print(f"DEBUG: DNS resolution failed: {e}")
+
+CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
+CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+LINE_API_URL = "https://api.line.biz/v2/bot/message/reply"
+
+# 以下、既存のコード...
+
 
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
