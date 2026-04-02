@@ -262,7 +262,14 @@ def webhook():
 @app.route("/health", methods=['GET'])
 def health():
     """ヘルスチェック"""
+    print("✅ /health endpoint called")
     return {'status': 'ok'}, 200
+
+@app.route("/", methods=['GET'])
+def index():
+    """ルートエンドポイント"""
+    print("✅ / endpoint called")
+    return {'message': 'LINE Bot Secretary is running'}, 200
 
 # ===== ローカル実行用 =====
 if __name__ == "__main__":
