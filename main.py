@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Optional
 from flask import Flask, request, abort
 
-from linebot import Bot, WebhookHandler
+from linebot import Bot, WebhookHandler, LineBotApi
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from linebot.exceptions import InvalidSignatureError
 
