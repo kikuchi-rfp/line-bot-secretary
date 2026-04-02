@@ -28,11 +28,9 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 # Claude クライアント初期化（遅延初期化）
 client = None
 try:
-    if ANTHROPIC_API_KEY:
-        client = Anthropic(api_key=ANTHROPIC_API_KEY)
-        logger.debug("Anthropic クライアント初期化成功")
-    else:
-        logger.debug("警告: ANTHROPIC_API_KEY が設定されていません")
+    # 環境変数から自動的に api_key を読む
+    client = Anthropic()
+    logger.debug("Anthropic クライアント初期化成功")
 except Exception as e:
     logger.debug(f"Anthropic クライアント初期化エラー: {type(e).__name__}: {str(e)}")
 
