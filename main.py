@@ -25,8 +25,16 @@ CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_API_URL = "https://api.line.me/v2/bot/message/reply"
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-# Claude クライアント初期化
-client = Anthropic(api_key=ANTHROPIC_API_KEY)
+# Claude クライアント初期化（遅延初期化）
+client = None
+try:
+    if ANTHROPIC_API_KEY:
+        client = Anthropic(api_key=ANTHROPIC_API_KEY)
+        logger.debug("Anthropic クライアント初期化成功")
+    else:
+        logger.debug("警告: ANTHROPIC_API_KEY が設定されていません")
+except Exception as e:
+    logger.debug(f"Anthropic クライアント初期化エラー: {type(e).__name__}: {str(e)}")
 
 # 関数の定義（その後）
 def verify_line_signature(body, signature):
@@ -42,6 +50,10 @@ def verify_line_signature(body, signature):
 def get_claude_response(user_message):
     """Claude AI に秘書として返答させる"""
     logger.debug(f"Claude に問い合わせ: {user_message}")
+
+    if not client:
+        logger.debug("エラー: Anthropic クライアントが初期化されていません")
+        return "申し訳ありません。秘書の初期化中にエラーが発生しました。管理者にお問い合わせください。"
 
     try:
         message = client.messages.create(
