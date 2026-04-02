@@ -21,7 +21,7 @@ app = Flask(__name__)
 # 環境変数の定義（最初）
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
-LINE_API_URL = "https://api.line.biz/v2/bot/message/reply"
+LINE_API_URL = "https://api.line.me/v2/bot/message/reply"
 
 # 関数の定義（その後）
 def verify_line_signature(body, signature):
