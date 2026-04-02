@@ -7,6 +7,7 @@ import requests
 import os
 import logging
 import sys
+from anthropic import Anthropic
 
 # ログ設定
 logging.basicConfig(
@@ -22,6 +23,10 @@ app = Flask(__name__)
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_API_URL = "https://api.line.me/v2/bot/message/reply"
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+
+# Claude クライアント初期化
+client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # 関数の定義（その後）
 def verify_line_signature(body, signature):
@@ -33,6 +38,28 @@ def verify_line_signature(body, signature):
     expected_signature = hash_object.digest()
     expected_signature_base64 = base64.b64encode(expected_signature).decode('utf-8')
     return expected_signature_base64 == signature
+
+def get_claude_response(user_message):
+    """Claude AI に秘書として返答させる"""
+    logger.debug(f"Claude に問い合わせ: {user_message}")
+
+    try:
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1024,
+            system="あなたは親切な秘書です。ユーザーの質問に対して、簡潔で分かりやすく、実用的な回答をしてください。",
+            messages=[
+                {"role": "user", "content": user_message}
+            ]
+        )
+
+        response_text = message.content[0].text
+        logger.debug(f"Claude の応答: {response_text}")
+        return response_text
+
+    except Exception as e:
+        logger.debug(f"Claude API エラー: {type(e).__name__}: {str(e)}")
+        return f"申し訳ありません。秘書の処理中にエラーが発生しました。"
 
 @app.route("/")
 def hello():
@@ -69,7 +96,10 @@ def webhook():
             message = event.get("message", {})
             text = message.get("text", "メッセージが空です")
             logger.debug(f"Message received: {text}")
-            send_reply_message(reply_token, text)
+
+            # Claude に秘書として返答させる
+            ai_response = get_claude_response(text)
+            send_reply_message(reply_token, ai_response)
 
         elif event_type == "follow":
             reply_token = event.get("replyToken")
