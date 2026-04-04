@@ -1,0 +1,266 @@
+# 秘書 AI エージェント
+
+Claude Code 内蔵の秘書 AI エージェントです。自然言語で指示を理解して、必要なツール（Google Calendar、Gmail など）を自動選択・実行します。
+
+## 📋 概要
+
+- **役割**：菊池代表の秘書として、LINE Bot からの依頼を処理
+- **技術**：Claude Agent SDK、Google APIs、Flask
+- **機能**：予定管理、メール対応、タスク管理（準備中）、採用管理（準備中）
+
+## 🏗️ ディレクトリ構成
+
+```
+05_秘書/
+├── config/
+│   ├── __init__.py
+│   ├── credentials.py          ← 認証情報統一管理
+│   ├── gmail_refresh_token.json ← Gmail 認証情報
+│   └── service_account.json    ← Google Calendar 認証情報（配置予定）
+├── tools/
+│   ├── __init__.py
+│   ├── calendar.py             ← Google Calendar ツール
+│   ├── gmail.py                ← Gmail ツール
+│   ├── sheets.py               ← Google Sheets ツール（準備中）
+│   └── indeed.py               ← Indeed API ツール（準備中）
+├── secretary_agent.py          ← メイン秘書 AI エージェント
+├── api.py                      ← Flask API エンドポイント
+├── .env.example                ← 環境設定テンプレート
+├── requirements.txt            ← Python 依存パッケージ
+├── .gitignore                  ← Git 無視リスト
+└── README.md                   ← このファイル
+```
+
+## 🚀 セットアップ
+
+### 1. 環境設定
+
+```bash
+# ローカル開発環境の場合
+cd 05_秘書
+
+# .env ファイルを作成
+cp .env.example .env
+
+# .env に認証情報を設定
+# GMAIL_REFRESH_TOKEN=...
+# GMAIL_CLIENT_ID=...
+# GMAIL_CLIENT_SECRET=...
+# ANTHROPIC_API_KEY=...
+```
+
+### 2. 依存パッケージをインストール
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. 認証情報の配置
+
+#### Gmail 認証情報（すでに配置済み）
+- `config/gmail_refresh_token.json` - OAuth 2.0 リフレッシュトークン
+
+#### Google Calendar 認証情報
+- Service Account JSON を取得して `config/service_account.json` に配置
+
+```bash
+# または環境変数で指定
+export GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
+```
+
+## 🔧 使用方法
+
+### ローカル開発での実行
+
+```bash
+# Flask API サーバーを起動
+python api.py
+
+# サーバーは http://localhost:5000 で起動します
+```
+
+### API エンドポイント
+
+#### ヘルスチェック
+```bash
+GET /health
+```
+
+#### 秘書 AI エージェント
+```bash
+POST /api/secretary
+
+リクエスト JSON:
+{
+    "message": "ユーザーからのメッセージ"
+}
+
+レスポンス JSON:
+{
+    "result": "秘書からの応答メッセージ"
+}
+```
+
+例：
+```bash
+curl -X POST http://localhost:5000/api/secretary \
+  -H "Content-Type: application/json" \
+  -d '{"message": "今週の予定を教えて"}'
+```
+
+## 🛠️ 主な機能
+
+### Google Calendar（予定管理）
+- 📅 今後の予定を確認
+- ➕ 新しい予定を追加
+
+**使用例：**
+- 「今週の予定は？」
+- 「明日の午後3時に会議を追加して」
+
+### Gmail（メール対応）
+- 🔍 メールを検索
+- 📧 メールの詳細を確認
+
+**使用例：**
+- 「山田さんからのメールを検索して」
+- 「その提案メールの内容を読んで」
+
+### Google Sheets（タスク管理）※準備中
+- 📝 タスク一覧を確認
+- ✅ タスクを追加・更新
+
+### Indeed API（採用管理）※準備中
+- 💼 求人情報を確認
+- 📋 応募者情報を管理
+
+## 🔐 認証情報管理
+
+### ローカル開発
+
+1. `.env` ファイルに認証情報を設定
+2. `credentials.py` が自動的に `.env` から読み込み
+
+```
+.env（リポジトリに含めない）
+└── credentials.py が読み込み
+```
+
+### 本番環境（Cloud Functions/Cloud Run）
+
+1. Google Cloud Secret Manager に認証情報を登録
+2. 環境変数として設定
+
+```
+Google Cloud Secret Manager
+└── 環境変数
+    └── credentials.py が読み込み
+```
+
+詳細は `config/credentials.py` を参照してください。
+
+## 📊 認証情報検証
+
+```bash
+# 認証情報が正しく設定されているか確認
+curl http://localhost:5000/health
+```
+
+レスポンス例：
+```json
+{
+    "status": "healthy",
+    "credentials": {
+        "gmail": true,
+        "calendar": true
+    }
+}
+```
+
+## 🧪 テスト
+
+```bash
+# 単体テスト
+python -m pytest tests/test_secretary.py -v
+
+# ツールテスト
+python -m pytest tests/test_tools.py -v
+
+# ローカル統合テスト
+# 1. api.py を実行
+# 2. curl でリクエストを送信
+```
+
+## 📝 ログ出力
+
+ログは標準出力に出力されます。レベル調整：
+
+```bash
+export LOG_LEVEL=DEBUG  # より詳細なログを表示
+python api.py
+```
+
+## ⚠️ トラブルシューティング
+
+### Gmail 認証エラー
+
+```
+Gmail 認証エラー: 認証情報が見つかりません
+```
+
+**対処：**
+1. `.env` に正しい認証情報が設定されているか確認
+2. `config/gmail_refresh_token.json` が存在するか確認
+3. リフレッシュトークンが有効か確認（有効期限あり）
+
+### Google Calendar 認証エラー
+
+```
+Calendar 認証エラー: Service Account情報が見つかりません
+```
+
+**対処：**
+1. `config/service_account.json` を配置
+2. または `GOOGLE_SERVICE_ACCOUNT_JSON` 環境変数を設定
+
+### Claude API エラー
+
+```
+Anthropic クライアント初期化エラー
+```
+
+**対処：**
+1. `ANTHROPIC_API_KEY` 環境変数を設定
+2. API キーが有効か確認
+
+## 🔗 LINE Bot 連携
+
+LINE Bot からの呼び出し例（Phase 2 実装予定）：
+
+```python
+# LINE Bot: main.py
+response = requests.post(
+    "http://localhost:5000/api/secretary",  # ローカル開発
+    # または
+    "https://your-secretary-endpoint/api/secretary",  # 本番
+    json={"message": user_message},
+    timeout=30
+)
+result = response.json()["result"]
+```
+
+## 📚 参考資料
+
+- [Anthropic Claude API](https://docs.anthropic.com/)
+- [Google Calendar API](https://developers.google.com/calendar)
+- [Gmail API](https://developers.google.com/gmail/api)
+
+## 🚀 次のステップ
+
+- Phase 2: LINE Bot 修正（call_claude_code_secretary() 実装）
+- Phase 3: Google Sheets & Indeed API 統合
+- Phase 4: クラウドデプロイ（Cloud Functions/Cloud Run）
+
+---
+
+作成日：2026-04-04
