@@ -116,25 +116,37 @@ def authenticate_google():
 def authenticate_gmail_oauth():
     """OAuth 2.0 リフレッシュトークンを使用して Gmail API を初期化"""
     try:
-        # gmail_refresh_token.json から トークン情報を読み込む
-        token_file = 'gmail_refresh_token.json'
+        # Step 1: 環境変数から Gmail リフレッシュトークン情報を取得
+        gmail_token_json = os.getenv("GMAIL_REFRESH_TOKEN_JSON")
 
-        if not os.path.exists(token_file):
-            logger.warning(f"Gmail トークンファイルが見つかりません: {token_file}")
+        if gmail_token_json:
+            try:
+                token_info = json_lib.loads(gmail_token_json)
+                logger.info("Gmail トークン情報を環境変数から読み込みました")
+            except json_lib.JSONDecodeError as e:
+                logger.error(f"GMAIL_REFRESH_TOKEN_JSON パースエラー: {e}")
+                return None
+        elif os.path.exists('gmail_refresh_token.json'):
+            # フォールバック: ローカルファイルから読み込む（ローカル開発用）
+            with open('gmail_refresh_token.json', 'r') as f:
+                token_info = json_lib.load(f)
+            logger.info("Gmail トークン情報をローカルファイルから読み込みました")
+        else:
+            logger.warning("Gmail トークン情報が見つかりません（環境変数: GMAIL_REFRESH_TOKEN_JSON または gmail_refresh_token.json ファイル）")
             return None
 
-        with open(token_file, 'r') as f:
-            token_info = json_lib.load(f)
-
+        # Step 2: トークン情報から必要な値を取得
         refresh_token = token_info.get('refresh_token')
         client_id = token_info.get('client_id')
         client_secret = token_info.get('client_secret')
 
         if not all([refresh_token, client_id, client_secret]):
-            logger.error("Gmail トークン情報が不完全です")
+            logger.error(f"Gmail トークン情報が不完全です: refresh_token={bool(refresh_token)}, client_id={bool(client_id)}, client_secret={bool(client_secret)}")
             return None
 
-        # リフレッシュトークンを使用してアクセストークンを取得
+        logger.debug(f"Gmail トークン情報確認: refresh_token={refresh_token[:20]}..., client_id={client_id[:20]}...")
+
+        # Step 3: リフレッシュトークンを使用してアクセストークンを取得
         from google.oauth2.credentials import Credentials
 
         creds = Credentials(
@@ -146,12 +158,15 @@ def authenticate_gmail_oauth():
             scopes=SCOPES
         )
 
-        # Gmail サービスを初期化
+        # Step 4: Gmail サービスを初期化
         gmail_service = build('gmail', 'v1', credentials=creds)
+        logger.debug("Gmail サービスオブジェクトを初期化しました")
         return gmail_service
 
     except Exception as e:
         logger.error(f"Gmail OAuth 2.0 認証エラー: {type(e).__name__}: {e}")
+        import traceback
+        logger.error(f"トレースバック: {traceback.format_exc()}")
         return None
 
 # ========== Google API ツール実装 ==========
