@@ -119,6 +119,12 @@ def authenticate_gmail_oauth():
         # Step 1: 環境変数から Gmail リフレッシュトークン情報を取得
         gmail_token_json = os.getenv("GMAIL_REFRESH_TOKEN_JSON")
 
+        # デバッグ: 環境変数の存在確認
+        logger.info(f"GMAIL_REFRESH_TOKEN_JSON環境変数の存在確認: {bool(gmail_token_json)}")
+        if gmail_token_json:
+            logger.info(f"GMAIL_REFRESH_TOKEN_JSON値の長さ: {len(gmail_token_json)} 文字")
+            logger.debug(f"GMAIL_REFRESH_TOKEN_JSON値（最初の100文字）: {gmail_token_json[:100]}")
+
         if gmail_token_json:
             try:
                 token_info = json_lib.loads(gmail_token_json)
