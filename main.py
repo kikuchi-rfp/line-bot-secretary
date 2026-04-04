@@ -156,13 +156,15 @@ def authenticate_gmail_oauth():
         from google.oauth2.credentials import Credentials
 
         logger.info("Step 3: Credentials オブジェクトを生成中...")
+        # Gmail のスコープのみを使用（Calendar は Service Account を使用）
+        gmail_scopes = ['https://www.googleapis.com/auth/gmail.modify']
         creds = Credentials(
             token=None,
             refresh_token=refresh_token,
             token_uri="https://oauth2.googleapis.com/token",
             client_id=client_id,
             client_secret=client_secret,
-            scopes=SCOPES
+            scopes=gmail_scopes
         )
         logger.info("✅ Credentials オブジェクト生成成功")
 
