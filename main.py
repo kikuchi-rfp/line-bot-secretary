@@ -155,6 +155,7 @@ def authenticate_gmail_oauth():
         # Step 3: リフレッシュトークンを使用してアクセストークンを取得
         from google.oauth2.credentials import Credentials
 
+        logger.info("Step 3: Credentials オブジェクトを生成中...")
         creds = Credentials(
             token=None,
             refresh_token=refresh_token,
@@ -163,9 +164,12 @@ def authenticate_gmail_oauth():
             client_secret=client_secret,
             scopes=SCOPES
         )
+        logger.info("✅ Credentials オブジェクト生成成功")
 
         # Step 4: Gmail サービスを初期化
+        logger.info("Step 4: Gmail サービスを初期化中...")
         gmail_service = build('gmail', 'v1', credentials=creds)
+        logger.info("✅ Gmail 認証成功（OAuth 2.0）")
         logger.debug("Gmail サービスオブジェクトを初期化しました")
         return gmail_service
 
