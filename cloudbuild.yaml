@@ -38,7 +38,7 @@ substitutions:
   _AR_REPOSITORY: 'cloud-run-source-deploy'
   _SERVICE_NAME: 'line-bot-secretary'
   _DEPLOY_REGION: 'asia-northeast1'
-  _SECRETARY_AGENT_URL: 'https://secretary-agent002-xxxxxxxx.run.app'
+  _SECRETARY_AGENT_URL: 'https://secretary-agent002-340493319915.asia-northeast1.run.app'
 
 options:
   machineType: 'N1_HIGHCPU_8'
