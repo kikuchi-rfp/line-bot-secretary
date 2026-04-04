@@ -17,14 +17,15 @@ steps:
       - 'push'
       - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}'
 
-  # Cloud Run にデプロイ
-  - name: 'gcr.io/cloud-builders/gke-deploy'
+   # Cloud Run にデプロイ
+  - name: 'gcr.io/cloud-builders/run'
     args:
-      - run
-      - '--filename=.'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
       - '--image=${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
-      - '--location=${_DEPLOY_REGION}'
-      - '--output=/workspace/output'
+      - '--region=${_DEPLOY_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
 
 images:
   - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}:latest'
