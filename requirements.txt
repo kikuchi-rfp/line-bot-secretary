@@ -1,24 +1,18 @@
 # ===============================
-# 秘書 AI エージェント依存パッケージ
+# LINE Bot 依存パッケージ
 # ===============================
+#
+# 役割: LINE Webhook 処理とプロキシのみ
+# - LINE署名検証
+# - 秘書 AI エージェントへの REST API 呼び出し
+#
 
-# Claude API（Anthropic）
-anthropic>=0.25.0
-
-# Flask（REST API）
+# Flask（REST API サーバー）
 Flask>=2.3.0
+Werkzeug>=2.3.0
 
-# Google API クライアント
-google-api-python-client>=2.90.0
-google-auth>=2.28.0
-google-auth-oauthlib>=1.0.0
-google-auth-httplib2>=0.2.0
+# HTTP リクエスト（秘書 AI 呼び出し）
+requests>=2.31.0
 
 # 環境変数管理
 python-dotenv>=1.0.0
-
-# 開発用パッケージ
-pytest>=7.0.0
-pytest-asyncio>=0.21.0
-black>=23.0.0
-flake8>=6.0.0
