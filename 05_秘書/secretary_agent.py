@@ -96,6 +96,7 @@ class SecretaryAgent:
         try:
             # 環境変数から API キーを取得
             api_key = os.getenv("ANTHROPIC_API_KEY")
+            logger.info(f"✅ API キー取得: {api_key[:20] if api_key else 'None'}...")
             if not api_key:
                 raise ValueError("ANTHROPIC_API_KEY が設定されていません")
 

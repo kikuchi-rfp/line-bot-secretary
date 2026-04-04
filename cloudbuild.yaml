@@ -1,0 +1,42 @@
+steps:
+  # Docker イメージをビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}:latest'
+      - '-t'
+      - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '-f'
+      - '05_秘書/Dockerfile'
+      - '05_秘書'
+
+  # Docker イメージを Artifact Registry にプッシュ
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}'
+
+   # Cloud Run にデプロイ
+  - name: 'gcr.io/cloud-builders/run'
+    args:
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--region=${_DEPLOY_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+
+images:
+  - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}:latest'
+  - '${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
+
+substitutions:
+  _AR_HOSTNAME: 'asia-northeast1-docker.pkg.dev'
+  _AR_PROJECT_ID: 'rfp-line-bot'
+  _AR_REPOSITORY: 'cloud-run-source-deploy'
+  _SERVICE_NAME: 'secretary-agent002'
+  _DEPLOY_REGION: 'asia-northeast1'
+
+options:
+  machineType: 'N1_HIGHCPU_8'
